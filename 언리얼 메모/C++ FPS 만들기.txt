@@ -1,0 +1,254 @@
+
+오브젝트 재질 바꾸기
+
+바닥을 클릭하고, 마테리얼에서 엠 그라운드 글래스를 선택한다
+
+
+
+직육면체 박스를 선택하고, 마테리얼에서 엠 코블스톤 페블을 선택한다
+
+
+
+
+
+전력질주 기능 넣기
+
+
+프로젝트 설정에서 기능에 키 지정해주기
+
+프로젝트 설정 창 - 인풋의 액션 맵핑에서 추가버튼을 누른다음 이름에 스프린트라고 적고, 검색창에 레프트 쉬프트를 입력하고 닫고 저장한다
+
+
+콘텐츠 브라우저 패널에서 C++ 클래스 - FPS튜토리얼 폴더안의 FPS튜토리얼 캐릭터를 더블클릭하여 비주얼 스튜디오를 열어준다
+
+
+헤더 파일에서 void LookUpAtRate 밑에 다음 내용을 추가해준다
+
+
+// 질주 시작
+void Sprint();
+
+// 질주 끝
+void StopSprinting();
+
+
+
+
+
+기능 함수 추가
+
+cpp파일 맨 밑에 스프린트와 스프린트 멈춤 기능 함수를 추가한다
+
+
+void AFPSTutorialCharacter::Sprint()
+{
+	if (auto characterMovement = GetCharacterMovement())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("캐릭터가 달립니다."));
+		characterMovement->MaxWalkSpeed = 1500.0f;
+		isSprinting = true;
+	}
+}
+
+
+void AFPSTutorialCharacter::StopSprinting()
+{
+	if (auto characterMovement = GetCharacterMovement())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("달리기를 멈춥니다."));
+		characterMovement->MaxWalkSpeed = 600.0f;
+		isSprinting = false;
+	}
+}
+
+
+
+
+이동 관련 요소 액세스 선행처리문 추가하기
+
+cpp파일에서, 상단에 아래 선행처리문을 추가한다 
+#include "GameFramework/CharacterMovementComponent.h"
+
+
+
+
+
+호출 함수 추가
+
+
+
+플레이어 입력 컴포넌트 설정 문단에 가서, 스프린트와 스프린트 멈춤 호출 명력문을 추가한다
+
+
+플레이어 입력 컴포넌트 설정 
+해당 키를 누르면 해당 함수를 호출한다
+
+
+
+
+기능추가가 완료되었으면 솔루션 빌드, 컴파일한다
+
+
+
+---------------------------------------------------------------------
+
+
+
+* 헤더파일에서 확인 변수를 uint32 bUsingMot ionControllers 명령문 밑에 추가한다
+
+
+bool isSprinting;
+
+bool isZoomedin;
+
+
+카메라 확대/축소 함수 선언 명령문을 스탑스프린팅 정의 명령문 밑에 적는다
+
+void ZoomIn();
+
+void stopZoom();
+
+
+cpp파일에서 기본 플레이어 변수의 참 거짓을 설정하는 명령문을 AFPSTutorialCharacter() 함수 안 맨 밑에 넣는다
+
+
+	isSprinting = false;
+	isZoomedIn = false;
+
+
+
+
+cpp파일의 셋업 플레이어 인풋 컴포넌트 기능 함수안의 fire 항목 밑에, 줌인 기능 명령문을 집어넣는다
+
+
+	PlayerInputComponent->BindAction("ZoomIn", IE_Pressed, this, &AFPSTutorialCharacter::ZoomIn);
+	PlayerInputComponent->BindAction("ZoomIn", IE_Released, this, &AFPSTutorialCharacter::stopZoom);
+
+
+
+
+프로젝트 셋팅 인풋 에 들어가서, 액션 맵핑 항목에 추가버튼을 눌러 ZoomIn 을 추가해주고 마우스 오른쪽 버튼으로 설정한다
+
+
+
+
+
+
+cpp파일 맨 밑 캐릭터 기능 함수 항목에서 확대 기능 함수를 추가해준다
+
+
+
+
+void AFPSTutorialCharacter::ZoomIn()
+{
+	if (auto firstPersonCamera = GetFirstPersonCameraComponent())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("확대합니다."));
+		firstPersonCamera->SetFieldOfView(70.0f);
+		isZoomedIn = true;
+	}
+}
+
+void AFPSTutorialCharacter::StopZoom()
+{
+	if (auto firstPersonCamera = GetFirstPersonCameraComponent())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("확대를 멈춥니다."));
+		firstPersonCamera->SetFieldOfView(90.0f);
+		isZoomedIn = false;
+	}
+}
+
+
+-------------------------------------------------------------
+
+
+
+무기 관련 설정
+
+
+새 클래스  추가하기
+
+콘텐츠 브라우저 - C++ 클래스 - 폴더 안에서 오른클릭하여 C++ 클래스 추가 버튼을 누른다
+
+* actor로 선택하고 이름을 지정해준다음, 클래스 만들기를 눌러준다
+
+
+
+
+헤더 파일 GENERATED_BODY 함수 public 안에 기본무기의 속성에 대한 기본값들을 정의해준다
+
+UPROPERTY
+탄약 총량 변수 정의
+
+
+cpp파일 기능 함수 안 프리마리 액터 틱크.b캔 에버 틱크 명령문 바로 밑에 속탄창 변수의 기본 속성값을 설정해준다
+
+
+
+
+
+	//탄창 변수의 기본값을 설정.
+	maxTotalAmmo = 100;
+	maxClipAmmo = 12;
+	totalAmmo = 64;
+	clipAmmo = 12;
+	reloadTime = 1.0f;
+
+
+
+
+헤더파일에서 BeginPlay 함수 안, 맨 밑에 무기 포인터 변수를 정의한다
+
+
+	//플레이어가 현재 들고 있는 무기.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	ABaseWeapon* weapon;
+
+
+
+
+헤더파일에서 void StopZoom 함수 밑에, 재장전 함수와 알림 트리거 함수를 정의한다
+
+
+//현재 무기를 재장전.
+	void ReloadWeapon();
+
+	//해당 무기의 탄약이 완전히 떨어졌음을 알리는 팝업 알림을 트리거.
+	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+	void TriggerOutOfAmmoPopUp();
+
+
+
+
+cpp파일에서 변수의 논리를 설정하는 항목에 기본무기 설정문을 넣는다
+
+
+
+weapon = nullptr;
+
+
+cpp파일의 셋업 플레이어 인풋 컴포넌트 이벤트 호출 함수 안에서, 발사 이벤트 항목에 재장전 이벤트문을 집어넣는다
+
+
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPSTutorialCharacter::ReloadWeapon);
+
+
+
+
+언리얼의 프로젝트 셋팅 - 인풋 창에서 재장전 키를 추가한다
+
+
+
+발사 이벤트 함수에 아래 조건문을 추가한다
+
+			if (weapon)
+			{
+				if (weapon->clipAmmo > 0)
+				{
+
+
+
+10:29 
+
+
